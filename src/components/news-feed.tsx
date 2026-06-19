@@ -1,6 +1,3 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { ArrowRight, ExternalLink } from 'lucide-react'
 import Link from 'next/link'
 
 interface HNStory {
@@ -8,63 +5,122 @@ interface HNStory {
   title: string
   url: string
   score: number
-  time: number
   by: string
+  time: number
 }
 
 async function getTopStories(): Promise<HNStory[]> {
   try {
-    const res = await fetch('https://hacker-news.firebaseio.com/v0/topstories.json', {
-      next: { revalidate: 3600 } // Revalidate every hour
-    })
-    const ids: number[] = await res.json()
-    const top10Ids = ids.slice(0, 10)
-    
+    const idsRes = await fetch('https://hacker-news.firebaseio.com/v0/topstories.json', { next: { revalidate: 300 } })
+    const ids: number[] = await idsRes.json()
+    const top12 = ids.slice(0, 12)
     const stories = await Promise.all(
-      top10Ids.map(async (id) => {
-        const itemRes = await fetch(`https://hacker-news.firebaseio.com/v0/item/${id}.json`)
-        return itemRes.json()
-      })
+      top12.map(id =>
+        fetch(`https://hacker-news.firebaseio.com/v0/item/${id}.json`, { next: { revalidate: 300 } }).then(r => r.json())
+      )
     )
-    return stories.filter(story => story && story.url) // Only return stories with URLs
-  } catch (error) {
-    console.error('Failed to fetch news:', error)
+    return stories.filter(s => s && s.url && s.title)
+  } catch {
     return []
   }
 }
+
+function timeAgo(unix: number): string {
+  const secs = Math.floor(Date.now() / 1000) - unix
+  if (secs < 3600) return `${Math.floor(secs / 60)}m ago`
+  if (secs < 86400) return `${Math.floor(secs / 3600)}h ago`
+  return `${Math.floor(secs / 86400)}d ago`
+}
+
+const TAGS = ['LLM Release', 'Hardware', 'Policy', 'Research', 'Security', 'Startup', 'Open Source', 'AI Tools']
+const TAG_COLORS = [
+  'text-[#c0c1ff] border-[#c0c1ff]/30',
+  'text-[#c8c6c5] border-[#c8c6c5]/30',
+  'text-[#ffb4ab] border-[#ffb4ab]/30',
+  'text-[#c6c6c6] border-[#c6c6c6]/30',
+  'text-[#c0c1ff] border-[#c0c1ff]/30',
+  'text-[#c8c6c5] border-[#c8c6c5]/30',
+  'text-[#ffb4ab] border-[#ffb4ab]/30',
+  'text-[#c6c6c6] border-[#c6c6c6]/30',
+]
 
 export async function NewsFeed() {
   const stories = await getTopStories()
 
   if (stories.length === 0) {
-    return <div className="text-zinc-400">Unable to load trending news at this time.</div>
+    return (
+      <div className="glass-card rounded-xl p-8 text-center text-[#c7c4d7]">
+        <span className="material-symbols-outlined text-[48px] text-[#464554] block mb-2">wifi_off</span>
+        Unable to load news feed. Please try again later.
+      </div>
+    )
   }
 
   return (
-    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-      {stories.map((story) => (
-        <Card key={story.id} className="border-white/10 bg-[#1e1f26] text-white flex flex-col hover:border-indigo-500/30 transition-colors">
-          <CardHeader className="pb-3 flex-1">
-            <CardTitle className="text-lg leading-tight line-clamp-2">
-              <a href={story.url} target="_blank" rel="noopener noreferrer" className="hover:text-indigo-400 flex items-start gap-2">
+    <div className="relative w-full overflow-hidden">
+      {/* Fade masks */}
+      <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-[#12131a] to-transparent z-10 pointer-events-none"></div>
+      <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-[#12131a] to-transparent z-10 pointer-events-none"></div>
+
+      {/* Horizontal scroll container */}
+      <div className="flex overflow-x-auto hide-scrollbar space-x-4 pb-4 snap-x">
+        {stories.map((story, i) => (
+          <div
+            key={story.id}
+            className="snap-start min-w-[280px] w-[280px] glass-card rounded-lg p-4 hover-glow transition-all duration-300 cursor-pointer group flex flex-col"
+          >
+            <div className="flex justify-between items-start mb-3">
+              <span className={`font-mono text-[10px] uppercase tracking-wider border px-2 py-0.5 rounded-full ${TAG_COLORS[i % TAG_COLORS.length]}`}>
+                {TAGS[i % TAGS.length]}
+              </span>
+              <span className="text-[#c7c4d7] font-mono text-[10px]">{timeAgo(story.time)}</span>
+            </div>
+
+            <h4 className="text-[16px] font-medium text-[#e2e1eb] leading-tight mb-2 group-hover:text-[#c0c1ff] transition-colors flex-1">
+              {story.title}
+            </h4>
+
+            <div className="flex items-center justify-between mt-4">
+              <div className="flex items-center space-x-2 text-[#c7c4d7]/50">
+                <span className="material-symbols-outlined text-[14px]">trending_up</span>
+                <span className="font-mono text-[10px]">{story.score} pts · {story.by}</span>
+              </div>
+              <Link
+                href={`/dashboard/content?url=${encodeURIComponent(story.url || '')}&title=${encodeURIComponent(story.title)}`}
+                className="font-mono text-[10px] text-[#c0c1ff] hover:text-[#494bd6] transition-colors flex items-center gap-1"
+              >
+                Generate <span className="material-symbols-outlined text-[12px]">arrow_forward</span>
+              </Link>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Below feed — grid of selected news with "Generate" CTA */}
+      <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {stories.slice(0, 6).map((story, i) => (
+          <div key={`grid-${story.id}`} className="glass-card rounded-lg p-4 flex flex-col group hover-glow transition-all duration-300">
+            <div className="flex justify-between items-start mb-2">
+              <h4 className="text-[14px] font-medium text-[#e2e1eb] leading-tight group-hover:text-[#c0c1ff] transition-colors flex-1 pr-2">
                 {story.title}
-                <ExternalLink className="h-4 w-4 shrink-0 mt-1 opacity-50" />
-              </a>
-            </CardTitle>
-            <CardDescription className="text-zinc-400 mt-2">
-              {story.score} points by {story.by}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="pt-0">
-            <Link 
-              href={`/dashboard/content?url=${encodeURIComponent(story.url)}&title=${encodeURIComponent(story.title)}`}
-              className="inline-flex shrink-0 items-center justify-center rounded-lg text-sm font-medium transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 h-8 gap-1.5 px-2.5 w-full border border-zinc-700 bg-transparent hover:bg-indigo-500 hover:text-white hover:border-indigo-500 text-white"
+              </h4>
+              {story.url && (
+                <a href={story.url} target="_blank" rel="noopener noreferrer" className="text-[#c7c4d7] hover:text-[#c0c1ff] flex-shrink-0">
+                  <span className="material-symbols-outlined text-[16px]">open_in_new</span>
+                </a>
+              )}
+            </div>
+            <p className="font-mono text-[11px] text-[#c7c4d7]/70">{story.score} points by {story.by}</p>
+            <Link
+              href={`/dashboard/content?url=${encodeURIComponent(story.url || '')}&title=${encodeURIComponent(story.title)}`}
+              className="mt-4 pt-3 border-t border-[#464554]/50 flex items-center justify-between text-[#c7c4d7] hover:text-[#c0c1ff] transition-colors"
             >
-              Generate Post <ArrowRight className="ml-2 h-4 w-4" />
+              <span className="font-mono text-[11px]">Generate Post</span>
+              <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
             </Link>
-          </CardContent>
-        </Card>
-      ))}
+          </div>
+        ))}
+      </div>
     </div>
   )
 }
