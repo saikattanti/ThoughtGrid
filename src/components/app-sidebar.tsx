@@ -2,6 +2,8 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { createClient } from '@/db/supabase/client'
+import { useEffect, useState } from 'react'
 
 const navItems = [
   { href: '/dashboard',           label: 'Dashboard',        icon: 'dashboard' },
@@ -15,6 +17,22 @@ const navItems = [
 
 export function AppSidebar() {
   const pathname = usePathname()
+  const [user, setUser] = useState<{ email?: string, fullName?: string, avatarUrl?: string } | null>(null)
+  
+  useEffect(() => {
+    const fetchUser = async () => {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        setUser({
+          email: user.email,
+          fullName: user.user_metadata?.full_name || 'Admin User',
+          avatarUrl: user.user_metadata?.avatar_url
+        })
+      }
+    }
+    fetchUser()
+  }, [])
 
   return (
     <nav className="hidden md:flex flex-col h-full py-6 px-4 fixed left-0 top-0 w-[280px] glass-panel border-r border-outline z-50">
@@ -65,13 +83,32 @@ export function AppSidebar() {
       </div>
 
       {/* Footer */}
-      <div className="mt-auto pt-4 border-t border-outline/50">
+      <div className="mt-auto pt-4 border-t border-outline/50 space-y-4">
         <Link
           href="#"
           className="flex items-center space-x-3 px-3 py-2.5 rounded-sm text-muted hover:text-foreground hover:bg-surface-bright/20 transition-colors duration-200"
         >
           <span className="material-symbols-outlined text-[20px]">help_outline</span>
           <span className="text-[14px]">Support</span>
+        </Link>
+        
+        {/* User Profile Snippet */}
+        <Link href="/dashboard/profile" className="px-3 flex items-center gap-3 hover:bg-surface-bright/10 p-2 rounded-lg transition-colors cursor-pointer border border-transparent hover:border-outline/30">
+          <div className="w-8 h-8 rounded-full bg-surface flex items-center justify-center overflow-hidden border border-outline shrink-0">
+            {user?.avatarUrl ? (
+              <img src={user.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+            ) : (
+              <span className="material-symbols-outlined text-[20px] text-muted">person</span>
+            )}
+          </div>
+          <div className="flex flex-col min-w-0">
+            <span className="text-[13px] font-medium text-foreground leading-tight truncate">
+              {user?.fullName || 'Loading...'}
+            </span>
+            <span className="font-mono text-[10px] text-muted opacity-70 truncate">
+              {user ? 'Pro Plan' : ''}
+            </span>
+          </div>
         </Link>
       </div>
     </nav>
