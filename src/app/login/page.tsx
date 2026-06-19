@@ -21,32 +21,32 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center overflow-hidden bg-[#12131a]">
+    <div className="relative min-h-screen flex items-center justify-center overflow-hidden bg-background">
       {/* Grid background */}
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#464554_1px,transparent_1px),linear-gradient(to_bottom,#464554_1px,transparent_1px)] bg-[size:32px_32px] opacity-20"></div>
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,var(--color-outline-variant)_1px,transparent_1px),linear-gradient(to_bottom,var(--color-outline-variant)_1px,transparent_1px)] bg-[size:32px_32px] opacity-20"></div>
       {/* Glow */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[#c0c1ff]/8 blur-[120px] rounded-full pointer-events-none"></div>
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/8 blur-[120px] rounded-full pointer-events-none"></div>
 
       <div className="relative z-10 w-full max-w-md mx-4">
         {/* Card */}
-        <div className="glass-card rounded-xl border border-[#464554] p-8 space-y-8">
+        <div className="glass-card rounded-xl border border-outline p-8 space-y-8">
           {/* Logo */}
           <div className="text-center space-y-3">
-            <div className="w-12 h-12 rounded-xl bg-[#c0c1ff]/20 border border-[#c0c1ff]/30 flex items-center justify-center mx-auto">
-              <span className="material-symbols-outlined text-[#c0c1ff] text-[24px]" style={{ fontVariationSettings: "'FILL' 1" }}>auto_awesome</span>
+            <div className="w-12 h-12 rounded-xl bg-primary/20 border border-primary/30 flex items-center justify-center mx-auto">
+              <span className="material-symbols-outlined text-primary text-[24px]" style={{ fontVariationSettings: "'FILL' 1" }}>auto_awesome</span>
             </div>
-            <h1 className="text-[32px] font-semibold tracking-tight text-[#e2e1eb]">ThoughtGrid</h1>
-            <p className="font-mono text-[12px] text-[#c7c4d7] uppercase tracking-widest">Login to your Personal Branding OS</p>
+            <h1 className="text-[32px] font-semibold tracking-tight text-foreground">ThoughtGrid</h1>
+            <p className="font-mono text-[12px] text-muted uppercase tracking-widest">Login to your Personal Branding OS</p>
           </div>
 
-          <div className="h-px bg-[#464554]"></div>
+          <div className="h-px bg-outline-variant"></div>
 
           {/* Auth buttons */}
           <div className="space-y-3">
             <button
               onClick={() => handleOAuthLogin('google')}
               disabled={isLoading !== null}
-              className="w-full flex items-center justify-center gap-3 px-4 py-3 text-[14px] font-medium text-[#e2e1eb] transition-all rounded-sm border border-[#464554] bg-[#1e1f26] hover:bg-[#383940]/50 hover:border-[#908fa0] disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full flex items-center justify-center gap-3 px-4 py-3 text-[14px] font-medium text-foreground transition-all rounded-sm border border-outline bg-surface-container hover:bg-surface-bright/50 hover:border-outline disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading === 'google' ? (
                 <span className="material-symbols-outlined animate-spin text-[18px]">sync</span>
@@ -59,7 +59,7 @@ export default function LoginPage() {
             <button
               onClick={() => handleOAuthLogin('github')}
               disabled={isLoading !== null}
-              className="w-full flex items-center justify-center gap-3 px-4 py-3 text-[14px] font-medium text-[#e2e1eb] transition-all rounded-sm border border-[#464554] bg-[#1e1f26] hover:bg-[#383940]/50 hover:border-[#908fa0] disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full flex items-center justify-center gap-3 px-4 py-3 text-[14px] font-medium text-foreground transition-all rounded-sm border border-outline bg-surface-container hover:bg-surface-bright/50 hover:border-outline disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading === 'github' ? (
                 <span className="material-symbols-outlined animate-spin text-[18px]">sync</span>
@@ -70,13 +70,13 @@ export default function LoginPage() {
             </button>
           </div>
 
-          <p className="text-center font-mono text-[11px] text-[#c7c4d7]/50">
+          <p className="text-center font-mono text-[11px] text-muted/50">
             By continuing, you agree to our Terms of Service and Privacy Policy.
           </p>
         </div>
 
-        <p className="text-center mt-6 font-mono text-[11px] text-[#c7c4d7]/40">
-          <Link href="/" className="hover:text-[#c0c1ff] transition-colors">← Back to home</Link>
+        <p className="text-center mt-6 font-mono text-[11px] text-muted/40">
+          <Link href="/" className="hover:text-primary transition-colors">← Back to home</Link>
         </p>
       </div>
     </div>
