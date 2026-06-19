@@ -18,7 +18,10 @@ const STYLES = [
   { value: 'Thought Leader', icon: 'psychology' },
 ]
 
-export function ContentStudioClient() {
+import { useRouter } from 'next/navigation'
+
+export function ContentStudioClient({ hasLinkedIn }: { hasLinkedIn: boolean }) {
+  const router = useRouter()
   const searchParams = useSearchParams()
   const [url, setUrl] = useState(searchParams.get('url') || '')
   const [title, setTitle] = useState(searchParams.get('title') || '')
@@ -144,7 +147,16 @@ export function ContentStudioClient() {
                 className="px-3 py-1.5 rounded-sm border border-[#464554] text-[#c7c4d7] text-[14px] hover:bg-[#12131a] transition-colors"
               >Discard</button>
             </div>
-            <button className="px-5 py-2 rounded-lg bg-[#e2e1eb] text-[#12131a] text-[14px] font-medium hover:bg-[#c0c1ff] hover:shadow-[0_0_15px_rgba(192,193,255,0.3)] transition-all flex items-center gap-2">
+            <button 
+              onClick={() => {
+                if (!hasLinkedIn) {
+                  router.push('/dashboard/settings')
+                } else {
+                  // Post to LinkedIn logic here
+                  console.log('Publishing to LinkedIn...')
+                }
+              }}
+              className="px-5 py-2 rounded-lg bg-[#e2e1eb] text-[#12131a] text-[14px] font-medium hover:bg-[#c0c1ff] hover:shadow-[0_0_15px_rgba(192,193,255,0.3)] transition-all flex items-center gap-2">
               <span className="material-symbols-outlined text-[18px]">send</span> Stage for Publishing
             </button>
           </div>
