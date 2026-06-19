@@ -1,0 +1,88 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+}
+
+model User {
+  id          String   @id @default(uuid()) @db.Uuid // Matches Supabase auth user UUID
+  email       String   @unique
+  firstName   String?
+  lastName    String?
+  bio         String?
+  avatarUrl   String?
+  planTier    String   @default("Student Developer")
+  
+  posts       Post[]
+  agents      Agent[]
+  images      GeneratedImage[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Post {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @db.Uuid
+  title       String
+  sourceUrl   String?
+  content     String   @db.Text
+  status      PostStatus @default(DRAFT)
+  platform    Platform @default(LINKEDIN)
+  scheduledFor DateTime?
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Agent {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @db.Uuid
+  name        String
+  description String
+  isActive    Boolean  @default(false)
+  type        AgentType
+  lastRunAt   DateTime?
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model GeneratedImage {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @db.Uuid
+  prompt      String   @db.Text
+  imageUrl    String
+  aspectRatio String
+  style       String
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime @default(now())
+}
+
+enum PostStatus {
+  DRAFT
+  REVIEWING
+  PUBLISHED
+  GENERATING
+}
+
+enum Platform {
+  LINKEDIN
+  TWITTER
+}
+
+enum AgentType {
+  NEWS_SCOUT
+  SUMMARY_WRITER
+  ENGAGEMENT_ANALYZER
+  VOICE_ENFORCER
+}
